@@ -1,0 +1,89 @@
+import pandas as pd
+import numpy as np
+from sklearn.model_selection import train_test_split
+from sklearn.neighbors import KNeighborsClassifier
+from sklearn.metrics import confusion_matrix, accuracy_score, classification_report
+import matplotlib.pyplot as plt
+
+# ----------------------------------------------------
+# 1. LOAD DATA
+# ----------------------------------------------------
+df = pd.read_csv(r"C:\Users\Admin\Downloads\Mall_Customers.csv")
+
+# We will classify customers based on Spending Score into 3 categories:
+# Low (0–40), Medium (41–70), High (71–100)
+
+def spending_label(x):
+    if x <= 40:
+        return 0
+    elif x <= 70:
+        return 1
+    else:
+        return 2
+
+df["SpendingClass"] = df["Spending Score (1-100)"].apply(spending_label)
+
+# Features: Income + Spending Score
+X = df[["Annual Income (k$)", "Spending Score (1-100)"]]
+y = df["SpendingClass"]
+
+# Train–test split
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+
+# ----------------------------------------------------
+# 2. TRAIN KNN MODEL
+# ----------------------------------------------------
+k = 5
+knn = KNeighborsClassifier(n_neighbors=k)
+knn.fit(X_train, y_train)
+
+# Predictions
+y_pred = knn.predict(X_test)
+
+print("Chosen K =", k)
+
+# ----------------------------------------------------
+# 3. CONFUSION MATRIX
+# ----------------------------------------------------
+cm = confusion_matrix(y_test, y_pred)
+print("\nConfusion Matrix:\n", cm)
+
+# ----------------------------------------------------
+# 4. ACCURACY
+# ----------------------------------------------------
+acc = accuracy_score(y_test, y_pred)
+print("\nAccuracy:", round(acc, 4))
+
+print("\nClassification Report:\n", classification_report(y_test, y_pred))
+
+# ----------------------------------------------------
+# OPTIONAL: ACCURACY VS K-PLOT (K selection)
+# ----------------------------------------------------
+acc_list = []
+k_range = range(1, 21)
+
+for i in k_range:
+    model = KNeighborsClassifier(n_neighbors=i)
+    model.fit(X_train, y_train)
+    acc_list.append(model.score(X_test, y_test))
+
+plt.plot(k_range, acc_list, marker='o')
+plt.xlabel("K")
+plt.ylabel("Accuracy")
+plt.title("Choosing Optimal K (Bias–Variance Tradeoff)")
+plt.grid(True)
+plt.show()
+
+# ----------------------------------------------------
+# 5. INTERPRETATION
+# ----------------------------------------------------
+print("""
+INTERPRETATION:
+- Small k (1–3) → High variance → Overfitting.
+- Large k (15–20) → Too smooth → Underfitting.
+- k ≈ 5–8 usually best (good balance).
+- K can be chosen using cross-validation or accuracy-vs-k curve.
+
+The KNN model helps marketing by classifying customers into 
+Low / Medium / High spending groups for targeted promotions.
+""")
