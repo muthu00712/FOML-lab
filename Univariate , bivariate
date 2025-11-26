@@ -1,0 +1,94 @@
+import numpy as np
+import pandas as pd
+import matplotlib.pyplot as plt
+from sklearn.linear_model import LinearRegression
+from sklearn.model_selection import train_test_split
+from mpl_toolkits.mplot3d import Axes3D
+from sklearn.datasets import load_iris
+
+# ---------------------------------------------------
+# Load Iris Dataset
+# ---------------------------------------------------
+iris = load_iris()
+df = pd.DataFrame(iris.data, columns=iris.feature_names)
+
+# Rename columns for simplicity
+df.columns = ['sepal_length', 'sepal_width', 'petal_length', 'petal_width']
+
+# ---------------------------------------------------
+# 1. UNIVARIATE REGRESSION
+# Predict petal_length using sepal_length
+# ---------------------------------------------------
+X_uni = df[['sepal_length']]
+y = df['petal_length']
+
+X_train_u, X_test_u, y_train_u, y_test_u = train_test_split(X_uni, y, test_size=0.2, random_state=42)
+
+model_uni = LinearRegression()
+model_uni.fit(X_train_u, y_train_u)
+
+r2_uni = model_uni.score(X_test_u, y_test_u)
+
+# Plot
+plt.scatter(X_uni, y, label="Data")
+plt.plot(X_uni, model_uni.predict(X_uni), color='red', label="Regression Line")
+plt.title("Univariate Regression: Petal Length vs Sepal Length")
+plt.xlabel("Sepal Length")
+plt.ylabel("Petal Length")
+plt.legend()
+plt.show()
+
+print("Univariate Regression R²:", r2_uni)
+
+# ---------------------------------------------------
+# 2. BIVARIATE REGRESSION
+# Predict petal_length using sepal_length + sepal_width
+# ---------------------------------------------------
+X_bi = df[['sepal_length', 'sepal_width']]
+
+X_train_b, X_test_b, y_train_b, y_test_b = train_test_split(X_bi, y, test_size=0.2, random_state=42)
+
+model_bi = LinearRegression()
+model_bi.fit(X_train_b, y_train_b)
+
+r2_bi = model_bi.score(X_test_b, y_test_b)
+
+print("Bivariate Regression R²:", r2_bi)
+
+# 2D Visualization (Predicted vs Actual)
+plt.scatter(y_test_b, model_bi.predict(X_test_b))
+plt.xlabel("Actual Petal Length")
+plt.ylabel("Predicted Petal Length")
+plt.title("Bivariate Regression: Actual vs Predicted")
+plt.show()
+
+# ---------------------------------------------------
+# 3. MULTIVARIATE REGRESSION
+# Predict petal_length using sepal_length + sepal_width + petal_width
+# ---------------------------------------------------
+X_multi = df[['sepal_length', 'sepal_width', 'petal_width']]
+
+X_train_m, X_test_m, y_train_m, y_test_m = train_test_split(X_multi, y, test_size=0.2, random_state=42)
+
+model_multi = LinearRegression()
+model_multi.fit(X_train_m, y_train_m)
+
+r2_multi = model_multi.score(X_test_m, y_test_m)
+
+print("Multivariate Regression R²:", r2_multi)
+
+# ---------------------------------------------------
+# 3D Visualization of Multivariate Regression
+# ---------------------------------------------------
+fig = plt.figure()
+ax = fig.add_subplot(111, projection='3d')
+
+ax.scatter(df['sepal_length'], df['sepal_width'], df['petal_length'], c='blue')
+
+ax.set_xlabel("Sepal Length")
+ax.set_ylabel("Sepal Width")
+ax.set_zlabel("Petal Length")
+plt.title("Multivariate Regression (3D Visualization)")
+
+plt.show()
+
