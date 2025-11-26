@@ -1,0 +1,47 @@
+import pandas as pd
+import numpy as np
+import matplotlib.pyplot as plt
+from sklearn.linear_model import LinearRegression
+
+# Load dataset
+data = pd.read_csv('headbrain.csv')
+
+print("First 5 data points:")
+print(data.head())
+
+# Extract X and Y
+x = np.array(data['Head Size(cm^3)'])
+y = np.array(data['Brain Weight(grams)'])
+
+# Manual regression (Least Squares)
+m = np.sum((x - x.mean()) * (y - y.mean())) / np.sum((x - x.mean())**2)
+c = y.mean() - m * x.mean()
+
+# Predictions
+y_pred = m * x + c
+
+# MSE
+mse = np.mean((y - y_pred)**2)
+
+# Manual R²
+ss_total = np.sum((y - y.mean())**2)
+ss_res = np.sum((y - y_pred)**2)
+r2_manual = 1 - (ss_res / ss_total)
+
+# Print results
+print(f"Slope (m): {m:.4f}")
+print(f"Intercept (c): {c:.4f}")
+print(f"MSE: {mse:.4f}")
+print(f"R² (manual): {r2_manual:.4f}")
+
+# Plot scatter + regression line
+plt.scatter(x, y, label='Actual data')
+plt.plot(x, y_pred, label='Regression Line')
+plt.xlabel('Head Size (cm^3)')
+plt.ylabel('Brain Weight (grams)')
+plt.legend()
+plt.show()
+
+# Sklearn regression
+reg = LinearRegression().fit(x.reshape(-1,1), y)
+print(f"R² (sklearn): {reg.score(x.reshape(-1,1), y):.4f}")
