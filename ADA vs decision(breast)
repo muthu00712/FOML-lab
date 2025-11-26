@@ -1,0 +1,87 @@
+from sklearn.datasets import load_breast_cancer
+from sklearn.model_selection import train_test_split
+from sklearn.tree import DecisionTreeClassifier
+from sklearn.ensemble import AdaBoostClassifier
+from sklearn.metrics import accuracy_score, confusion_matrix, classification_report
+import matplotlib.pyplot as plt
+
+# ------------------------------
+# 1. Load dataset
+# ------------------------------
+X, y = load_breast_cancer(return_X_y=True)
+Xtr, Xte, ytr, yte = train_test_split(
+    X, y, test_size=0.2, stratify=y, random_state=42
+)
+
+# ------------------------------
+# 2. Decision Tree (Weak Learner)
+# ------------------------------
+weak = DecisionTreeClassifier(max_depth=1, random_state=42)
+weak.fit(Xtr, ytr)
+weak_pred = weak.predict(Xte)
+
+print("\n=== Weak Learner: Decision Tree (max_depth=1) ===")
+print("Accuracy :", round(accuracy_score(yte, weak_pred), 4))
+print("Confusion Matrix:\n", confusion_matrix(yte, weak_pred))
+print("Classification Report:\n", classification_report(yte, weak_pred))
+
+# ------------------------------
+# 3. AdaBoost Classifier
+# ------------------------------
+ada = AdaBoostClassifier(
+    estimator=weak,
+    n_estimators=100,
+    learning_rate=0.5,
+    random_state=42
+)
+
+ada.fit(Xtr, ytr)
+ada_pred = ada.predict(Xte)
+
+print("\n=== AdaBoost Ensemble (100 estimators) ===")
+print("Accuracy :", round(accuracy_score(yte, ada_pred), 4))
+print("Confusion Matrix:\n", confusion_matrix(yte, ada_pred))
+print("Classification Report:\n", classification_report(yte, ada_pred))
+
+# ------------------------------
+# 4. Accuracy vs Number of Estimators
+# ------------------------------
+ests = [10, 50, 100, 200]
+accs = []
+
+for e in ests:
+    model = AdaBoostClassifier(estimator=weak, n_estimators=e, learning_rate=0.5)
+    model.fit(Xtr, ytr)
+    accs.append(accuracy_score(yte, model.predict(Xte)))
+
+plt.plot(ests, accs, marker='o')
+plt.xlabel("Number of Estimators")
+plt.ylabel("Accuracy")
+plt.title("AdaBoost Accuracy vs Number of Estimators")
+plt.grid(True)
+plt.show()
+
+# ------------------------------
+# 5. COMPARISON SUMMARY
+# ------------------------------
+print("\n=== COMPARISON SUMMARY ===")
+print(f"Decision Tree Accuracy : {round(accuracy_score(yte, weak_pred), 4)}")
+print(f"AdaBoost Accuracy      : {round(accuracy_score(yte, ada_pred), 4)}")
+print("AdaBoost improves performance because it focuses more on misclassified samples.\n")
+
+# ------------------------------
+# 6. COMMENT ON HYPERPARAMETERS
+# ------------------------------
+print("=== COMMENT ON ESTIMATORS & LEARNING RATE ===")
+print("""
+- Number of Estimators:
+    More estimators generally increases accuracy up to a point.
+    Too many → may cause overfitting or slow training.
+
+- Learning Rate:
+    Controls contribution of each weak learner.
+    Low LR → more trees required.
+    High LR → faster learning but risk of overfitting.
+
+In this experiment, using 100 estimators and learning_rate=0.5 gives a strong improvement over a single tree.
+""")
