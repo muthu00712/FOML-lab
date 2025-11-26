@@ -1,0 +1,64 @@
+import pandas as pd
+import numpy as np
+import matplotlib.pyplot as plt
+from sklearn.linear_model import LinearRegression
+from sklearn.metrics import mean_squared_error
+
+# -------------------------------------------------------
+# 1. Load Dataset
+# -------------------------------------------------------
+data = pd.read_csv("headbrain.csv")   # ← ensure file is in the same folder
+
+# Inspect first few values
+print("First 5 rows of dataset:")
+print(data.head())
+
+# -------------------------------------------------------
+# 2. Separate features and target
+# -------------------------------------------------------
+X = data[['Head Size(cm^3)']]      # Feature
+y = data['Brain Weight(grams)']    # Target
+
+# Train model
+model = LinearRegression()
+model.fit(X, y)
+
+# Extract slope (w1) and intercept (w0)
+w1 = model.coef_[0]
+w0 = model.intercept_
+
+print(f"\nRegression Line: BrainWeight = {w1:.4f} * HeadSize + {w0:.4f}")
+
+# -------------------------------------------------------
+# 3. Predictions
+# -------------------------------------------------------
+
+# Predictions for training data
+y_pred = model.predict(X)
+
+# Predict new sample values
+new_data = np.array([[3500], [4000]])    # example new head sizes
+new_pred = model.predict(new_data)
+
+print("\nPredictions for new values:")
+for h, p in zip(new_data, new_pred):
+    print(f"Head Size = {h[0]} → Predicted Brain Weight = {p:.2f} grams")
+
+# -------------------------------------------------------
+# 4. Visualization
+# -------------------------------------------------------
+plt.scatter(X, y, color='blue', label='Original Data')
+plt.plot(X, y_pred, color='red', label='Regression Line')
+
+plt.xlabel("Head Size (cm³)")
+plt.ylabel("Brain Weight (grams)")
+plt.title("Linear Regression: Head Size vs Brain Weight")
+plt.legend()
+plt.grid(True)
+plt.show()
+
+# -------------------------------------------------------
+# 5. Mean Squared Error (MSE)
+# -------------------------------------------------------
+mse = mean_squared_error(y, y_pred)
+print("\nMean Squared Error (MSE):", mse)
