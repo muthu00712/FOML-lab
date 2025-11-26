@@ -1,0 +1,74 @@
+import pandas as pd
+import matplotlib.pyplot as plt
+from sklearn.model_selection import train_test_split
+from sklearn.neural_network import MLPClassifier
+from sklearn.metrics import accuracy_score, confusion_matrix, classification_report
+
+# -----------------------------------------------------
+# 1. LOAD DATA
+# -----------------------------------------------------
+df = pd.read_csv(r"C:\Users\Admin\Downloads\bank_note_data.csv")
+
+y = df.pop("Class")
+X = df
+
+
+# Train-test split
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+
+# -----------------------------------------------------
+# 2. BUILD MLP MODEL
+# -----------------------------------------------------
+mlp = MLPClassifier(
+    hidden_layer_sizes=(8, 6),   # Two hidden layers
+    activation='relu',
+    solver='adam',
+    learning_rate_init=0.001,
+    max_iter=500,
+    random_state=42
+)
+
+# TRAIN MODEL
+history = mlp.fit(X_train, y_train)
+
+# -----------------------------------------------------
+# ARCHITECTURE SUMMARY
+# -----------------------------------------------------
+print("\n--- MLP Architecture Summary ---")
+print("Input features :", X_train.shape[1])
+print("Hidden layers  :", mlp.hidden_layer_sizes)
+print("Activation     :", mlp.activation)
+print("Output layer   : 1 neuron (binary classification)")
+print("---------------------------------\n")
+
+# -----------------------------------------------------
+# 3. MODEL EVALUATION
+# -----------------------------------------------------
+y_pred = mlp.predict(X_test)
+
+accuracy = accuracy_score(y_test, y_pred)
+cm = confusion_matrix(y_test, y_pred)
+
+print("Accuracy:", round(accuracy, 4))
+print("\nConfusion Matrix:\n", cm)
+print("\nClassification Report:\n", classification_report(y_test, y_pred))
+
+# -----------------------------------------------------
+# 4. TRAINING HISTORY (Loss Curve)
+# -----------------------------------------------------
+plt.plot(mlp.loss_curve_)
+plt.title("MLP Training Loss Curve")
+plt.xlabel("Epoch")
+plt.ylabel("Loss")
+plt.grid(True)
+plt.show()
+
+# -----------------------------------------------------
+# PRINT HYPERPARAMETERS
+# -----------------------------------------------------
+print("\n--- Training Hyperparameters ---")
+print("Solver:", mlp.solver)
+print("Learning Rate:", mlp.learning_rate_init)
+print("Max Iterations:", mlp.max_iter)
+print("Activation Function:", mlp.activation)
+print("--------------------------------")
