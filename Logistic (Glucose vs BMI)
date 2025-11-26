@@ -1,0 +1,82 @@
+import pandas as pd
+import numpy as np
+import matplotlib.pyplot as plt
+from sklearn.linear_model import LogisticRegression
+from sklearn.model_selection import train_test_split
+from sklearn.metrics import confusion_matrix, accuracy_score, precision_score, recall_score, f1_score
+
+# LOAD DATASET
+df = pd.read_csv("diabetes.csv")
+
+# SELECT FEATURES AND TARGET
+X = df[['Glucose', 'BMI']]
+y = df['Outcome']
+
+# -------------------------
+# TRAIN–TEST SPLIT
+# -------------------------
+X_train, X_test, y_train, y_test = train_test_split(
+    X, y, test_size=0.2, random_state=42
+)
+
+# TRAIN LOGISTIC REGRESSION MODEL
+model = LogisticRegression(max_iter=1000)
+model.fit(X_train, y_train)
+
+# PREDICTIONS
+y_pred = model.predict(X_test)
+
+# METRICS
+cm = confusion_matrix(y_test, y_pred)
+acc = accuracy_score(y_test, y_pred)
+prec = precision_score(y_test, y_pred)
+rec = recall_score(y_test, y_pred)
+f1 = f1_score(y_test, y_pred)
+
+print("Confusion Matrix:\n", cm)
+print("\nAccuracy:", round(acc, 3))
+print("Precision:", round(prec, 3))
+print("Recall:", round(rec, 3))
+print("F1 Score:", round(f1, 3))
+
+# ------------------------------
+# DECISION BOUNDARY PLOT
+# (Use TRAINED MODEL but plot on full range)
+# ------------------------------
+xx, yy = np.meshgrid(
+    np.linspace(X.Glucose.min() - 5, X.Glucose.max() + 5, 300),
+    np.linspace(X.BMI.min() - 5, X.BMI.max() + 5, 300)
+)
+
+Z = model.predict(np.c_[xx.ravel(), yy.ravel()]).reshape(xx.shape)
+
+plt.figure(figsize=(8, 6))
+plt.contourf(xx, yy, Z, alpha=0.3, cmap='coolwarm')
+
+# Plot training + testing points with different markers
+plt.scatter(X_train.Glucose, X_train.BMI, c=y_train, cmap='coolwarm', edgecolors='k', label='Train')
+plt.scatter(X_test.Glucose, X_test.BMI, c=y_test, cmap='coolwarm', edgecolors='yellow', marker='x', s=80, label='Test')
+
+plt.xlabel("Glucose")
+plt.ylabel("BMI")
+plt.title("Decision Boundary: Diabetes Prediction (Train/Test)")
+plt.legend()
+plt.show()
+
+# ------------------------------
+# SCATTER PLOT OF ACTUAL OUTCOMES
+# ------------------------------
+plt.figure(figsize=(8,6))
+plt.scatter(X.Glucose, X.BMI, c=y, cmap='coolwarm', edgecolors='k')
+plt.xlabel("Glucose")
+plt.ylabel("BMI")
+plt.title("Scatter Plot: Actual Outcomes (0 = Non-Diabetic, 1 = Diabetic)")
+plt.show()
+
+# ------------------------------
+# INTERPRETATION
+# ------------------------------
+print("\nInterpretation:")
+print("Train-test split gives a more realistic estimate of model performance.")
+print("Training on 80% data and testing on 20% avoids overfitting.")
+print("Use precision/recall together to balance false positives & false negatives.")
