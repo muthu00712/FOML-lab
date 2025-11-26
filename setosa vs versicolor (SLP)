@@ -1,0 +1,78 @@
+import numpy as np
+import matplotlib.pyplot as plt
+from sklearn.datasets import load_iris
+from sklearn.model_selection import train_test_split
+from sklearn.linear_model import Perceptron
+from sklearn.metrics import accuracy_score, confusion_matrix
+
+# ----------------------------------------------------
+# 1. Load Iris dataset (only Setosa & Versicolor)
+# ----------------------------------------------------
+iris = load_iris()
+X = iris.data[:, 2:4]   # Use Petal length & Petal width
+y = iris.target
+
+# Keep only classes 0 = Setosa, 1 = Versicolor
+mask = y < 2
+X = X[mask]
+y = y[mask]
+
+# Train-test split
+X_train, X_test, y_train, y_test = train_test_split(
+    X, y, test_size=0.3, random_state=42
+)
+
+# ----------------------------------------------------
+# 2. Train Perceptron
+# ----------------------------------------------------
+clf = Perceptron(max_iter=100, eta0=0.1, random_state=42)
+clf.fit(X_train, y_train)
+
+# Predictions
+y_pred = clf.predict(X_test)
+
+# ----------------------------------------------------
+# 3. Accuracy and Confusion Matrix
+# ----------------------------------------------------
+print("Accuracy:", accuracy_score(y_test, y_pred))
+print("\nConfusion Matrix:\n", confusion_matrix(y_test, y_pred))
+
+# ----------------------------------------------------
+# 4. Decision Boundary Plot
+# ----------------------------------------------------
+plt.figure(figsize=(7,5))
+
+# Scatter points
+plt.scatter(X[y == 0][:, 0], X[y == 0][:, 1], color='blue', label='Setosa')
+plt.scatter(X[y == 1][:, 0], X[y == 1][:, 1], color='red', label='Versicolor')
+
+# Create mesh for boundary
+x_min, x_max = X[:, 0].min() - 1, X[:, 0].max() + 1
+y_min, y_max = X[:, 1].min() - 1, X[:, 1].max() + 1
+xx, yy = np.meshgrid(np.linspace(x_min, x_max, 200),
+                     np.linspace(y_min, y_max, 200))
+
+Z = clf.predict(np.c_[xx.ravel(), yy.ravel()])
+Z = Z.reshape(xx.shape)
+
+plt.contourf(xx, yy, Z, alpha=0.3, cmap='coolwarm')
+
+plt.xlabel("Petal Length (cm)")
+plt.ylabel("Petal Width (cm)")
+plt.title("Decision Boundary: Perceptron (Setosa vs Versicolor)")
+plt.legend()
+plt.show()
+
+# ----------------------------------------------------
+# 5. Explanation
+# ----------------------------------------------------
+print("\nNOTE ON PERCEPTRON & LINEAR SEPARABILITY:")
+print("""
+- The perceptron converges only when the classes are linearly separable.
+- Setosa vs Versicolor is almost perfectly separable using petal features,
+  which is why the perceptron finds a clean straight-line boundary.
+- If the data is NOT linearly separable, the perceptron will NOT converge 
+  (it keeps updating weights forever).
+- In this case, petal length and width create a clear linear split, so the 
+  perceptron converges in a few epochs and produces a perfect boundary.
+""")
